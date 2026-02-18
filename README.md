@@ -1,0 +1,2 @@
+# Pyjong
+Mahjong in Py
