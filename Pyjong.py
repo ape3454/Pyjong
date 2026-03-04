@@ -147,41 +147,65 @@ def initialisation():
 
         print("------[ Dealing Phase ]------")
         time.sleep(0.2)
-        print("Roll:")
+        print("Roll (press any key):")
         while not msvcrt.kbhit():
             pass
 
         diceTotal = [0, []]
         for i in range(4): # first roll is player's
             time.sleep(3)
-            roll = [random.randint(1, 6), i]
-            if roll[0] > diceTotal[0]:
-                diceTotal = [roll[0], [i]]
-            elif roll[0] == diceTotal[0]:
+            roll = random.randint(1, 6)
+            if roll > diceTotal[0]:
+                diceTotal = [roll, [i]]
+            elif roll == diceTotal[0]:
                 diceTotal[1].append(i)
             if i == 0:
-                print("You rolled a", roll[0])
+                print("You rolled a", roll)
             else:
-                print("Player", (i + 1), "rolled a", roll[0])
+                print("Player", (i + 1), "rolled a", roll)
 
         while len(diceTotal[1]) >= 2:
+            msvcrt.getch()
+            time.sleep(0.2)
             print("There was a tie!")
-            roll1 = random.randint(1, 6)
-            roll2 = random.randint(1, 6)
-            if roll1 == roll2:
-                continue
-            elif roll1 > roll2:
-                diceTotal[1].pop(1)
-            else:
-                diceTotal[1].pop(0)
+            time.sleep(0.2)
+            diceTotal[0] = []
+            for player in diceTotal[1][:]:
+                diceTotal[0].append(random.randint(1, 6))
+                if player == 0:
+                    print("Roll:")
+                    while not msvcrt.kbhit():
+                        pass
+                    time.sleep(3)
+                    print("You rolled a", diceTotal[0][-1])
+                else:
+                    time.sleep(3)
+                    print("Player %s rolled a %s" % (diceTotal[1][1], diceTotal[0][-1]))
+                if len(set(diceTotal[0])) >= 2:
+                    diceTotal[1].remove(player)
+                    diceTotal[0].remove(min(diceTotal[0]))
+                print(diceTotal)
+
         hands = hands[diceTotal[1][0]:] + hands[:diceTotal[1][0]]
         time.sleep(0.3)
-        print("Player %s is East. Player %s is South. Player %s is West. Player %s is North." % (diceTotal[1][0] + 1, (diceTotal[1][0] + 2) % 4, (diceTotal[1][0] + 3) % 4, (diceTotal[1][0] + 4) % 4))
+        print("Player %s is East. Player %s is South. Player %s is West. Player %s is North." % (diceTotal[1][0] % 4 + 1, (diceTotal[1][0] + 1) % 4 + 1, (diceTotal[1][0] + 2) % 4 + 1, (diceTotal[1][0] + 3) % 4 + 1))
+        time.sleep(1)
 
         diceTotal = random.randint(1,6) + random.randint(1,6) + random.randint(1,6)
 
         dealOrder = walls[diceTotal % 4] + walls[(diceTotal + 1) % 4] + walls[(diceTotal + 2) % 4] + walls[(diceTotal + 3) % 4]
         dealOrder = dealOrder[(diceTotal - 1) * 2 + 1:] + dealOrder[:(diceTotal - 1) * 2 + 1]
+
+        for i in range(random.choices([1, 2, 3, 4, 7], weights=[2, 10, 10, 3, 1])[0]):
+            time.sleep(2)
+            print("Shuffling", end='', flush=True)
+            time.sleep(0.9)
+            for i in range(3):
+                print(".", end='', flush=True)
+                time.sleep(0.9)
+            print()
+        time.sleep(2)
+        
         # diceTotal represents wall shift of dealOrder
         dels = len(walls[diceTotal % 4][diceTotal:])
         walls[diceTotal % 4][diceTotal:] = []
@@ -192,15 +216,27 @@ def initialisation():
             walls[(diceTotal + 2) % 4][:17 - dels] = []
 
         for i in range(3):
+            time.sleep(2)
+            print("Dealing", end='', flush=True)
+            time.sleep(0.9)
+            for i in range(3):
+                print(".", end='', flush=True)
+                time.sleep(0.9)
+            print()
+        time.sleep(2)
+
+        for i in range(3):
             for j in range(4):
                 removeFromWall(4, j)
         for i in range(4):
             removeFromWall(1, i)
         removeFromWall(1, 0)
 
+        
+
     # functions are done
 
-    explanation()
+    #explanation()
     wall()
     dealing()
 
