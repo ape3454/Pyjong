@@ -22,12 +22,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 2,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
@@ -61,7 +57,7 @@
               "RelativeDocumentMoniker": "Pyjong.py",
               "ToolTip": "C:\\Users\\ape34\\source\\repos\\ape3454\\Pyjong\\Pyjong.py",
               "RelativeToolTip": "Pyjong.py",
-              "ViewState": "AgIAAGAAAAAAAAAAAAAAALIAAAArAAAAAAAAAA==",
+              "ViewState": "AgIAAK8AAAAAAAAAAAAlwLwAAAADAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
               "WhenOpened": "2026-03-02T07:57:20.256Z",
               "EditorCaption": ""
