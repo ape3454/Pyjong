@@ -1,5 +1,6 @@
 from copy import deepcopy
 import math
+from os import remove
 import random
 import time
 import msvcrt
@@ -29,6 +30,7 @@ tileDragonTemplate = ["HZ", "BB", "FC"]
 tileWindTemplate = ['E', 'S', 'W', 'N']
 tileBonusTemplate = ["Plum", "Orchid", "Chrysanthemum", "Bamboo", "Spring", "Summer", "Autumn", "Winter"]
 discardPile = []
+discardPileVisuals = []
 p1Wall = []
 p2Wall = []
 p3Wall = []
@@ -251,23 +253,33 @@ def initialisation():
 
 def play():
 
-    options = ["Draw", "Discard", "Swap", "Meld"]
-    melds = [] # list of lists in form [[discarded tile, [tiles in hand]], type of meld]
+    options = ["Draw", "Discard", "Discard Pile", "Swap", "Meld"]
+    global melds
+    melds = []
     winning = False
+
+    def discard(hand, tileIndex):
+        discardPile.append(hands[hand].pop(tileIndex))
 
     def bonus():
         while bool(set([*p1Hand, *p2Hand, *p3Hand, *p4Hand]) & set(tileBonusTemplate)):
             for index, hand in enumerate(playOrder):
                 if bool(set(hands[index]) & set(tileBonusTemplate)):
+                    time.sleep(0.5)
                     if hand == 0:
                         print("Player 1:") 
-                        print("Choose a bonus tile (Use A,D)")
-                        print("  ".join([f"\x1b[38;5;247m{v}\x1b[0m" if v in tileBonusTemplate else v for v in p1Hand]))
+                        print("Choose a bonus tile (Use A,D)\n")
+                        #print("  ".join([f"\x1b[38;5;247m{v}\x1b[0m" if v in tileBonusTemplate else v for v in p1Hand]))
                         select = 0
                         selected = False
                         bonusTiles = [i for i in p1Hand if i in tileBonusTemplate]
+                        reprint = True
                         while selected is False:
+                            if reprint:
+                                print("\x1b[F\x1b[K" + "  ".join([f"\x1b[1;4m{i}\x1b[0m" if i == bonusTiles[select] else (i if i in bonusTiles else f"\x1b[38;5;247m{i}\x1b[0m") for i in p1Hand]))
+                                reprint = False
                             if msvcrt.kbhit():
+                                reprint = True
                                 try:
                                     key = msvcrt.getch().decode()
                                 except:
@@ -277,147 +289,98 @@ def play():
                                         select -= 1
                                     case 'd':
                                         select += 1
-                                    case '\r':
+                                    case '\r' | ' ':
                                         selected = True
                                     case 'A':
                                         select = 0
                                     case 'D':
                                         select = len(bonusTiles) - 1
                                     case _:
+                                        reprint = False
                                         continue
                                 if select < 0:
                                     select = 0
                                 if select >= len(bonusTiles):
                                     select = len(bonusTiles) - 1
-                            print("\x1b[1F" + "  ".join([f"\x1b[1;4m{i}\x1b[0m" if i == bonusTiles[select] else (i if i in bonusTiles else f"\x1b[38;5;247m{i}\x1b[0m") for i in p1Hand]))
 
                         p1Hand.remove(bonusTiles[select])
                         removeFromWall(1, hand, -1)
+                        print("You discarded %s and drew %s from the back." % (bonusTiles[select], p1Hand[-1]))
+                        print()
 
                     else:
                         hands[index].remove(list(set(hands[index]) & set(tileBonusTemplate))[0])
                         removeFromWall(1, hand, -1)
+                        print("Player %s discarded a bonus tile and drew from the back." % (index + 1))
 
-    def checkMeld():
-        global melds
+    def checkMeld(handIndex):
+        hand = hands[handIndex]
 
+        if not bool(discardPile):
+            return False
         discarded = discardPile[-1]
-        if p1Hand.count(discarded) >= 2 or p1Hand.count(discarded) == 1 and winning == True: # identical melds
-            if p1Hand.count(discarded) == 1:
-                melds.append([[discarded, [i for i, v in enumerate(p1Hand) if v == discarded]], 'E'])
-            elif p1Hand.count(discarded) == 3:
-                melds.append([[discarded, [i for i, v in enumerate(p1Hand) if v == discarded]], 'G'])
+        if hand.count(discarded) >= 2 or hand.count(discarded) == 1 and winning == True: # identical melds
+            if hand.count(discarded) == 1:
+                melds.append([[discarded, [i for i, v in enumerate(hand) if v == discarded]], 'E'])
+            elif hand.count(discarded) == 3:
+                melds.append([[discarded, [i for i, v in enumerate(hand) if v == discarded]], 'G'])
             else:
-                melds.append([[discarded, [i for i, v in enumerate(p1Hand) if v == discarded]], 'P'])
+                melds.append([[discarded, [i for i, v in enumerate(hand) if v == discarded]], 'P'])
 
-        if len(discarded) == 2: # Seons
-            if discarded[1] in tileSuitedTemplate:
-                for i, v in enumerate(p1Hand):
-                    if v[0] == discarded[0]:
-                        current_v = [discarded]
-                        current_i = [discarded]
-                        if abs(int(v[1]) - int(discarded[1])) == 1:
-                            current_v.append(v)
-                            current_i.append(i)
-                            current_v.sort()
-                            for i1, v1 in enumerate(p1Hand):
-                                if int(v1[1]) - int(current_v[0][1]) == 1:
-                                    current_i.append(i1)
-                                    melds.append([current_i, 'S'])
-                                elif int(current_v[1][1]) - int(v1[1]) == 1:
-                                    current_i.append(i1)
-                                    melds.append([current_i, 'S'])
+        if discarded[-1] in range(1, 14): # Seons
+            for i, v in enumerate(hand):
+                if v[0] == discarded[0]:
+                    current_v = [discarded]
+                    current_i = [discarded]
+                    if abs(int(v[1]) - int(discarded[1])) == 1:
+                        current_v.append(v)
+                        current_i.append(i)
+                        current_v.sort()
+                        for i1, v1 in enumerate(hand):
+                            if v1[-1] not in range(1, 14):
+                                continue
+                            if int(v1[1]) - int(current_v[0][1]) == 1:
+                                current_i.append(i1)
+                                melds.append([current_i, 'S'])
+                            elif int(current_v[1][1]) - int(v1[1]) == 1:
+                                current_i.append(i1)
+                                melds.append([current_i, 'S'])
         
         if bool(melds):
+            print(melds)
             return True
 
-    def tileVisuals():
-        for i, v in enumerate(p1Hand):
+    def callMeld(handIndex):
+        
+        pass
+
+    def tileVisuals(tiles):
+        for i, v in enumerate(tiles):
             match v:
                 case v if len(v) == 1:
                     pass
                 case v if v[0] == 'K':
-                    p1HandVisuals[i] = f"\x1b[38;5;160m{v}\x1b[0m"
+                    tiles[i] = f"\x1b[38;5;160m{v}\x1b[0m"
                 case v if v[0] == 'S':
-                    p1HandVisuals[i] = f"\x1b[38;5;34m{v}\x1b[0m"
+                    tiles[i] = f"\x1b[38;5;34m{v}\x1b[0m"
                 case v if v[0] == 'D':
                     pass
                 case v if v[0] == 'H':
-                    p1HandVisuals[i] = f"\x1b[38;5;160m{v}\x1b[0m"
+                    tiles[i] = f"\x1b[38;5;160m{v}\x1b[0m"
                 case v if v[0] == 'F':
-                    p1HandVisuals[i] = f"\x1b[38;5;34m{v}\x1b[0m"
+                    tiles[i] = f"\x1b[38;5;34m{v}\x1b[0m"
                 case _:
                     pass
 
-    def discardTurn():
-        if playOrder[0] == 0:
-            print("Player 1:") 
-            print("Your Tiles:")
-            print("  ".join(p1Hand))
-            print("Options:")
-            print("Choose an option.")
-            print()
-            canDraw = False
-            canDiscard = True
-            canSwap = True
-            canMeld = False
-            canOption = [canDraw, canDiscard, canSwap, canMeld]
-        
-            endTurn = False
-            listSelect = 0 # options = 0, cards = 1
-            selectable = [1, 2]
-            while endTurn == False:
-                select = 0
-                selected = False
-                while selected is False:
-                    if listSelect == 0:
-                        print("\x1b[2F\x1b[KChoose an option.")
-                        print("\x1b[K--> " + " <--> ".join([(f"\x1b[1;4m{v}\x1b[0m" if selectable[select] == i else v) if canOption[i] else f"\x1b[38;5;247m{v}\x1b[0m" for i, v in enumerate(options)]) + " <--")
-                    elif listSelect == 1:
-                        print("\x1b[F" + "  ".join([f"\x1b[1;4m{v}\x1b[0m" if select == i else v for i, v in enumerate(p1HandVisuals)]))
-                    if msvcrt.kbhit():
-                        try:
-                            key = msvcrt.getch().decode()
-                        except:
-                            key = msvcrt.getch()
-                        match key:
-                            case 'a':
-                                select -= 1
-                            case 'd':
-                                select += 1
-                            case '\r':
-                                selected = True
-                            case 'A':
-                                select = 0
-                            case 'D':
-                                if listSelect == 0:
-                                    select = len(options) - 1
-                                elif listSelect == 1:
-                                    select = len(p1Hand) - 1
-                            case '\x1b':
-                                if listSelect == 1:
-                                    listSelect = 0
-                            case _:
-                                continue
-                        if select < 0:
-                            select = 0
-                        if listSelect == 0:
-                            if select >= len(selectable):
-                                select = len(selectable) - 1
-                        elif listSelect == 1:
-                            if select >= len(p1Hand):
-                                select = len(p1Hand) - 1
-                if listSelect == 0:
-                    listSelect = 1
-                    if select == 0:
-                        print("\x1b[2F\x1b[KDiscard one card.")
-                        print()
-                    elif select == 1:
-                        print("\x1b[2F\x1b[KChoose two cards to swap.")
-                        print()
-                
+    def aiTurn(ai):
+        if checkMeld(ai):
+            callMeld(ai)
+        elif turn != 0:
+            removeFromWall(1, ai)
+        discard(ai, random.randint(0, len(hands[ai]) - 1))
+        pass
 
-    def newTurn():
+    def p1Turn():
         print("---[ Next Round ]---")
         print("Player 2: %s Tiles, Exposed Melds: %s" % (len(p2Hand), ", ".join(revealedMelds[1])))
         print("Player 3: %s Tiles, Exposed Melds: %s" % (len(p3Hand), ", ".join(revealedMelds[2])))
@@ -425,37 +388,173 @@ def play():
         print("Player 1:") 
         print("Your Exposed Melds:")
         print(", ".join(revealedMelds[0]))
-        print("Your Tiles:")
-        print("  ".join(p1Hand))
         
-        print("Options:")
-        canDraw = True
-        canDiscard = False
+        canDraw = turn != 0
+        canDiscard = turn == 0
+        canCheck = turn != 0
         canSwap = True
-        if checkMeld():
-            canMeld = True
+        canMeld = checkMeld(0)
+        endTurn = False
 
-        print("--> " + " <--> ".join(options) + " <--")
+        listSelect = 0 # options = 0, cards = 1
+        mode = None
+        chosen = (None,)
+        reprint = True
+
+        print("\n\n")
+        while endTurn == False:
+            canOption = [canDraw, canDiscard, canCheck, canSwap, canMeld]
+            selectable = [i for i, v in enumerate(canOption) if v]
+            select = 0
+            selected = False
+            while selected is False:
+                if listSelect == 0 and reprint:
+                    print("\x1b[3F\x1b[JOptions:")
+                    print("Choose an option.")
+                    print("--> " + " <--> ".join([(f"\x1b[1;4m{v}\x1b[0m" if selectable[select] == i else v) if canOption[i] else f"\x1b[38;5;247m{v}\x1b[0m" for i, v in enumerate(options)]) + " <--")
+                    reprint = False
+                elif listSelect == 1 and mode in (1, 3) and reprint:
+                    print("\x1b[F" + "  ".join([f"\x1b[1;4m{v}\x1b[0m" if select == i else v for i, v in enumerate(p1HandVisuals)]))
+                    reprint = False
+                elif listSelect == 1 and mode == 2 and reprint:
+                    print("\x1b[3F\x1b[JThe Discard Pile:")
+                    print("Top of discard pile is the left.")
+                    print("  ".join([f"\x1b[1;4m{v}\x1b[0m" if select == i else v for i, v in enumerate(discardPileVisuals)]))
+                    reprint = False
+
+                if msvcrt.kbhit():
+                    reprint = True
+                    try:
+                        key = msvcrt.getch().decode()
+                    except:
+                        key = msvcrt.getch()
+                    match key:
+                        case 'a':
+                            select -= 1
+                        case 'd':
+                            select += 1
+                        case '\r' | ' ':
+                            if mode != 2:
+                                selected = True
+                            else:
+                                reprint = False
+                        case 'A':
+                            select = 0
+                        case 'D':
+                            if listSelect == 0:
+                                select = len(options) - 1
+                            elif listSelect == 1:
+                                select = len(p1Hand) - 1
+                            elif listSelect == 2:
+                                select = len(discardPile) - 1
+                        case '\x1b':
+                            if listSelect == 1 and (mode == 1 or mode == 2):
+                                listSelect = 0
+                                mode = None
+                                print("\x1b[F")
+                            elif listSelect == 1 and mode == 3:
+                                if chosen == (None,):
+                                    listSelect = 0
+                                    mode = None
+                                    print("\x1b[F")
+                                else:
+                                    chosen = (None,)
+                                    print("\x1b[3F\x1b[JChoose two cards to swap.")
+                                    print("You have chosen None.")
+                                    print()
+                        case _:
+                            reprint = False
+                            continue
+                    if select < 0:
+                        select = 0
+                    if listSelect == 0:
+                        if select >= len(selectable):
+                            select = len(selectable) - 1
+                    elif listSelect == 1:
+                        if select >= len(p1Hand):
+                            select = len(p1Hand) - 1
+                    elif listSelect == 2:
+                        if select >= len(discardPile):
+                            select = len(discardPile) - 1
+
+            if listSelect == 0:
+                listSelect = 1
+                mode = selectable[select]
+                match mode:
+                    case 0:
+                        listSelect = 0
+                        removeFromWall(1, playOrder.index(0), 0)
+                        canDraw = False
+                        canDiscard = True
+                        canMeld = False
+                        reprint = False
+                        canOption = [canDraw, canDiscard, canCheck, canSwap, canMeld]
+                        selectable = [i for i, v in enumerate(canOption) if v]
+                        print("\x1b[3F\x1b[JOptions:")
+                        print("You drew a %s." % (p1Hand[-1]))
+                        print("--> " + " <--> ".join([(f"\x1b[1;4m{v}\x1b[0m" if selectable[select] == i else v) if canOption[i] else f"\x1b[38;5;247m{v}\x1b[0m" for i, v in enumerate(options)]) + " <--")
+                    case 1:
+                        print("\x1b[3F\x1b[JDiscard one card:")
+                        print("(Ends turn immediately)")
+                        print()
+                    case 2:
+                        discardPileVisuals = discardPile
+                        tileVisuals(discardPileVisuals)
+                    case 3:
+                        print("\x1b[3F\x1b[JChoose two cards to swap:")
+                        print("You have chosen None.")
+                        print()
+                    case 4:
+                        callMeld(0)
+                        canMeld = False
+                        canDraw = False
+            elif listSelect == 1:
+                if mode == 1:
+                    print("You discarded %s." % (p1Hand[select]))
+                    discard(playOrder.index(0), select)
+                    endTurn = True
+                elif mode == 3:
+                    if chosen == (None,):
+                        chosen = (select,)
+                        print("\x1b[3F\x1b[JChoose another cards to swap:")
+                        print("You have chosen %s." % (p1Hand[select]))
+                        print()
+                    else:
+                        chosen = ((chosen[0], p1Hand[chosen[0]]), (select, p1Hand[select]))
+                        chosenVisuals = (p1HandVisuals[chosen[0][0]], p1HandVisuals[select])
+                        p1Hand[chosen[0][0]] = chosen[0][1]
+                        p1Hand[chosen[1][0]] = chosen[1][1]
+                        p1HandVisuals[chosen[0][0]] = chosenVisuals[1]
+                        p1HandVisuals[chosen[1][0]] = chosenVisuals[0]
+                        print("\x1b[3F\x1b[JChoose two cards to swap.")
+                        print("You swapped %s with %s." % (chosen[0][1], chosen[1][1]))
+                        print()
+                        chosen = (None,)
+                        chosenVisuals = (None,)
 
 
     print("------[ Playing Phase ]------")
     
     print("---[ First Round: Bonus Tiles ]---")
     time.sleep(0.5)
-    print("Bonus Tiles?")
+    print("Any Bonus Tiles?")
 
-    p1HandVisuals = p1Hand
-    tileVisuals()
     bonus()
+    print()
+    time.sleep(1)
     p1HandVisuals = p1Hand
-    tileVisuals()
-    discardTurn()
-
+    tileVisuals(p1HandVisuals)
+    
+    turn = 0
     while True:
-        newTurn()
-        break
-
-
+        time.sleep(1)
+        if playOrder[turn % 4] != 0:
+            aiTurn(turn % 4)
+        else:
+            p1Turn()
+            tileVisuals(p1HandVisuals)
+        bonus()
+        turn += 1
 
     pass
 
@@ -469,9 +568,9 @@ play()
 
 
 def test():
-    while True:
-        this = [msvcrt.getch().decode]
-        print(this[0] == b'\x1b')
+    while False:
+        this = msvcrt.getch().decode()
+        print("1" + this + "1")
         break
 
 test()
