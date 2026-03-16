@@ -25,6 +25,8 @@ Abbreviations:
     N = Eye
 """
 
+replay = True
+
 tileSuitedTemplate = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 tileDragonTemplate = ["HZ", "BB", "FC"]
 tileWindTemplate = ['E', 'S', 'W', 'N']
@@ -254,8 +256,10 @@ def initialisation():
 def play():
 
     options = ["Draw", "Discard", "Discard Pile", "Swap", "Meld"]
-    meldAbbreviations = {'P': "Pung", 'S': "Seon", 'G': "Gong", "E": "Eye"}
+    meldAbbreviations = {'E': "Eye", 'P': "Pung", 'G': "Gong", 'S': "Seon"}
     winning = False
+    global won
+    won = [False, None, []] # 1: if won, 2: who won, 3: hand that won/did not
     global p1HandVisuals
 
     def discard(hand, tileIndex):
@@ -305,51 +309,48 @@ def play():
                         p1Hand.remove(bonusTiles[select])
                         removeFromWall(1, hand, -1)
                         print("You discarded %s and drew %s from the back." % (bonusTiles[select], p1Hand[-1]))
-                        print("\n\n\n")
 
                     else:
                         hands[index].remove(list(set(hands[index]) & set(tileBonusTemplate))[0])
                         removeFromWall(1, hand, -1)
                         print("Player %s discarded a bonus tile and drew from the back." % (index + 1))
 
+    """def findMeld(setTiles, meldWith, exclIndex=None):
+        possibleMelds = []
+        if setTiles.count(meldWith) >= 1: # identical melds
+            possibleMelds.append([[meldWith] + [i for i, v in enumerate(setTiles) if v == meldWith and i != exclIndex], ('E' if setTiles.count(meldWith) == 1 and winning else ('G' if setTiles.count(meldWith) == 3 else ('P')))])
+    """
     def checkMeld(handIndex):
         hand = hands[handIndex]
         melds = []
-        print("this")
 
         if not bool(discardPile):
-            print("That")
             return False, None
         discarded = discardPile[-1]
-        if hand.count(discarded) >= 2 or hand.count(discarded) == 1: # identical melds
-            if hand.count(discarded) == 1 and winning == True:
-                melds.append([discarded] + [i for i, v in enumerate(hand) if v == discarded] + ['E'])
+        if hand.count(discarded) >= 2 or hand.count(discarded) >= 2 and winning: # identical melds
+            #melds.append([[discarded] + [i for i, v in enumerate(hand) if v == discarded], ('E' if hand.count(discarded) == 1 and winning else ('G' if hand.count(discarded == 3) else ('P')))])
+            if hand.count(discarded) == 1 and winning:
+                melds.append([[discarded] + [i for i, v in enumerate(hand) if v == discarded], 'E'])
             elif hand.count(discarded) == 3:
-                melds.append([discarded] + [i for i, v in enumerate(hand) if v == discarded] + ['G'])
+                melds.append([[discarded] + [i for i, v in enumerate(hand) if v == discarded], 'G'])
             elif hand.count(discarded) == 2:
-                melds.append([discarded] + [i for i, v in enumerate(hand) if v == discarded] + ['P'])
+                melds.append([[discarded] + [i for i, v in enumerate(hand) if v == discarded], 'P'])
 
-        print(discarded)
         if discarded[-1] in [str(i) for i in range(1, 10)]: # Seons
-            print(discarded[-1])
             for i, v in enumerate(hand):
                 if v[0] == discarded[0] and len(v) == 2:
-                    print(v[0])
                     current_v = [discarded]
                     current_i = [discarded]
                     if abs(int(v[1]) - int(discarded[1])) == 1:
                         current_v.append(v)
                         current_i.append(i)
                         current_v.sort()
-                        print(current_v, current_i)
                         for i1, v1 in enumerate(hand):
-                            print(v1)
                             if v1[-1] not in [str(i) for i in range(1, 10)] or v1[0] != discarded[0]:
                                 continue
                             if int(v1[1]) - int(current_v[1][1]) == 1:
                                 breakFor = False
                                 for i in melds:
-                                    print(set(i[0]), set(current_i + [i1]))
                                     if set(i[0]) == set(current_i + [i1]):
                                         breakFor = True
                                         break
@@ -358,7 +359,6 @@ def play():
                             elif int(current_v[0][1]) - int(v1[1]) == 1:
                                 breakFor = False
                                 for i in melds:
-                                    print(set(i[0]), set(current_i + [i1]))
                                     if set(i[0]) == set(current_i + [i1]):
                                         breakFor = True
                                         break
@@ -366,13 +366,81 @@ def play():
                                     melds.append([current_i + [i1], 'S'])
         
         if bool(melds):
-            print(melds)
             return True, melds
         else:
-            print()
             return False, None
 
     def callMeld(handIndex, melds): # for ai only?
+        pass
+
+    def checkWin(handIndex):
+
+        hand = hands[handIndex]
+        melds = [i.replace('>', '-').split('-') for i in revealedMelds[playOrder.index(handIndex)]]
+        possibleMelds = []
+        for i, v in enumerate(hand): # for each tile in your hand
+            if hand.count(v) >= 1: # identical melds
+                if hand.count(v) >= 1 and winning:
+                    possibleMelds.append([[i] + [i1 for i1, v1 in enumerate(hand) if v1 == v], 'E'])
+                if hand.count(v) == 3:
+                    possibleMelds.append([[i] + [i1 for i1, v1 in enumerate(hand) if v1 == v], 'G'])
+                if hand.count(v) >= 2:
+                    possibleMelds.append([[i] + [i1 for i1, v1 in enumerate(hand) if v1 == v], 'P'])
+            
+            if v[-1] in [str(i1) for i1 in range(1, 10)]: # Seons
+                for i1, v1 in enumerate(hand):
+                    if v1[0] == v[0] and len(v1) == 2: # if matching suits
+                        current_v = [v]
+                        current_i = [i]
+                        if abs(int(v1[1]) - int(v[1])) == 1: # if consecutive to original number
+                            current_v.append(v1)
+                            current_i.append(i1)
+                            current_v.sort()
+                            for i2, v2 in enumerate(hand):
+                                if len(v2) != 2 or v2[0] != v[0]:
+                                    continue
+                                if int(v2[1]) - int(current_v[1][1]) == 1: # if third tile is consecutive to end
+                                    breakFor = False
+                                    for i3 in possibleMelds:
+                                        if set(i3[0]) == set(current_i + [i2]):
+                                            breakFor = True
+                                            break
+                                    if not breakFor:
+                                        possibleMelds.append([current_i + [i2], 'S'])
+                                elif int(current_v[0][1]) - int(v2[1]) == 1: # if third tile is consecutive to start
+                                    breakFor = False
+                                    for i3 in possibleMelds:
+                                        if set(i3[0]) == set(current_i + [i2]):
+                                            breakFor = True
+                                            break
+                                    if not breakFor:
+                                        possibleMelds.append([current_i + [i2], 'S'])
+
+            def meldAHand():
+                for i in melds: # check if melds make up the hand
+                    if breakFor:
+                        break
+                    if i <= meldedHand: # if full subset
+                        meldedHand -= set(i[0])
+                        meldHand.append(melds.index(i))
+                        match len(meldedHand):
+                            case 0:
+                                winningHand = ("   ".join([('>' if melds[i][1] == 'S' else '-').join(sorted([hands[handIndex][i2] for i2 in [i1]])) for i1 in [melds[i][0] for i in meldHand]]))
+                                won = [True, playOrder[handIndex], winningHand]
+                                breakFor = True
+                            case 1:
+                                winning = True
+                                breakFor = True
+                            case _:
+                                meldAHand()
+
+            meldedHand = set(range(14 - 2 * len(melds)))
+            meldHand = []
+            breakFor = False
+            meldAHand
+                        
+
+                
         pass
 
     def tileVisuals(tiles):
@@ -392,15 +460,19 @@ def play():
                     tiles[i] = f"\x1b[38;5;34m{v}\x1b[0m"
                 case _:
                     pass
+        return tiles
 
     def aiTurn(ai):
         canMeld, melds = checkMeld(ai)
-        if canMeld:
+        """if canMeld:
             callMeld(ai, melds)
-        elif turn != 0:
-            removeFromWall(1, ai)
+        elif turn != 0:"""
+        removeFromWall(1, ai)
+        print("Player %s drew a tile." % (ai + 1))
+        time.sleep(0.5)
         bonus()
         discard(ai, random.randint(0, len(hands[ai]) - 1))
+        print("Player %s discarded a tile." % (ai + 1))
         pass
 
     def p1Turn():
@@ -410,7 +482,7 @@ def play():
         print("Player 4: %s Tiles, Exposed Melds: %s" % (len(p4Hand), ", ".join(revealedMelds[3])))
         print("Player 1:") 
         print("Your Exposed Melds:")
-        print(", ".join(revealedMelds[0]))
+        print("   ".join(revealedMelds[0]))
         
         canDraw = turn != 0
         canDiscard = turn == 0
@@ -422,7 +494,7 @@ def play():
         global p1HandVisuals
         listSelect = 0 # options = 0, cards = 1
         mode = None
-        chosen = (None,)
+        chosen = []
         reprint = True
         confirmMeld = False
         meldAvailable = None
@@ -438,7 +510,7 @@ def play():
                 selectable = discardPile
             select = 0
             selected = False
-            while selected is False:
+            while selected is False: # key detect ----------------------
                 if listSelect == 0 and reprint:
                     print("\x1b[3F\x1b[JOptions:")
                     print("Choose an option.")
@@ -484,14 +556,14 @@ def play():
                                 print("\x1b[F")
                                 selectable = [i for i, v in enumerate(canOption) if v]
                             elif listSelect == 1 and mode in (3, 4):
-                                if chosen == (None,) or chosen == ():
+                                if not bool(chosen):
                                     listSelect = 0
                                     mode = None
                                     print("\x1b[F")
                                     selectable = [i for i, v in enumerate(canOption) if v]
                                 else:
                                     if mode == 3:
-                                        chosen = (None,)
+                                        chosen = []
                                         print("\x1b[3F\x1b[JChoose two cards to swap.")
                                         print("You have chosen None.")
                                         print()
@@ -500,7 +572,7 @@ def play():
                                         chosen = chosen[:-1]
                                         print("\x1b[2F\x1b[JYou have chosen %s. " % (" and ".join([p1Hand[i] for i in chosen]) if bool(chosen) else "None"), end='')
                                         for meld in melds:
-                                            if set([p1Hand[i] for i in meld[0] if type(i) == int]) == set([p1Hand[i] for i in chosen]):
+                                            if sorted([p1Hand[i] for i in meld[0] if type(i) == int]) == sorted([p1Hand[i] for i in chosen]):
                                                 print("(%s) (Press E to confirm)" % (meldAbbreviations[meld[1]]), end='')
                                                 meldAvailable = meld
                                                 break
@@ -521,7 +593,7 @@ def play():
                     elif select >= len(selectable):
                         select = len(selectable) - 1
 
-            if listSelect == 0:
+            if listSelect == 0: # something was selected -----------------------------------
                 listSelect = 1
                 mode = selectable[select]
                 match mode:
@@ -534,23 +606,21 @@ def play():
                         reprint = False
                         canOption = [canDraw, canDiscard, canCheck, canSwap, canMeld]
                         selectable = [i for i, v in enumerate(canOption) if v]
-                        p1HandVisuals = deepcopy(p1Hand)
-                        tileVisuals(p1HandVisuals)
+                        p1HandVisuals = tileVisuals(deepcopy(p1Hand))
                         print("\x1b[3F\x1b[JOptions:")
                         print("You drew a %s." % (p1Hand[-1]))
                         print("--> " + " <--> ".join([(f"\x1b[1;4m{v}\x1b[0m" if selectable[select] == i else v) if canOption[i] else f"\x1b[38;5;247m{v}\x1b[0m" for i, v in enumerate(options)]) + " <--")
                         if bool(set(p1Hand) & set(tileBonusTemplate)):
                             bonus()
-                            p1HandVisuals = deepcopy(p1Hand)
-                            tileVisuals(p1HandVisuals)
+                            print("\n")
+                            p1HandVisuals = tileVisuals(deepcopy(p1Hand))
                             reprint = True
                     case 1:
                         print("\x1b[3F\x1b[JDiscard one card:")
                         print("(Ends turn immediately)")
                         print()
                     case 2:
-                        discardPileVisuals = deepcopy(discardPile)
-                        tileVisuals(discardPileVisuals)
+                        discardPileVisuals = tileVisuals(deepcopy(discardPile))
                         print("\x1b[3F\x1b[JThe Discard Pile:")
                         print("Top of discard pile is the left.")
                         print()
@@ -559,7 +629,7 @@ def play():
                         print("You have chosen None.")
                         print()
                     case 4:
-                        chosen = ()
+                        chosen = []
                         print("\x1b[3F\x1b[JSelect tiles:")
                         print("You have chosen %s." % (" and ".join([p1Hand[i] for i in chosen]) if bool(chosen) else "None"))
                         print()
@@ -570,13 +640,13 @@ def play():
                         discard(playOrder.index(0), select)
                         endTurn = True
                     case 3:
-                        if chosen == (None,):
-                            chosen = (select,)
+                        if not bool(chosen):
+                            chosen.append(select)
                             print("\x1b[3F\x1b[JChoose another cards to swap:")
                             print("You have chosen %s." % (p1Hand[select]))
                             print()
                         else:
-                            chosen = ((chosen[0], p1Hand[chosen[0]]), (select, p1Hand[select]))
+                            chosen = [[chosen[0], p1Hand[chosen[0]]], [select, p1Hand[select]]]
                             chosenVisuals = (p1HandVisuals[chosen[0][0]], p1HandVisuals[select])
                             p1Hand[chosen[0][0]] = chosen[0][1]
                             p1Hand[chosen[1][0]] = chosen[1][1]
@@ -585,12 +655,15 @@ def play():
                             print("\x1b[3F\x1b[JChoose two cards to swap.")
                             print("You swapped %s with %s." % (chosenVisuals[0], chosenVisuals[1]))
                             print()
-                            chosen = (None,)
+                            chosen = []
                             chosenVisuals = (None,)
                     case 4:
                         if not confirmMeld:
-                            chosen = tuple(set([selectable[select]]).union([i for i in chosen if bool(i)]))
+                            if len(chosen) == 3:
+                                continue
+                            chosen.append(selectable[select])
                             print("\x1b[2F\x1b[JYou have chosen %s. " % (" and ".join([p1Hand[i] for i in chosen]) if bool(chosen) else "None"), end='')
+                            meldAvailable = None
                             for meld in melds:
                                 if sorted([p1Hand[i] for i in meld[0] if type(i) == int]) == sorted([p1Hand[i] for i in chosen]):
                                     print("(%s) (Press E to confirm)" % (meldAbbreviations[meld[1]]), end='')
@@ -598,10 +671,13 @@ def play():
                                     break
                             print("\n")
                         else:
-                            print(melds, meldAvailable)
                             print("\x1b[3F\x1b[JYou created a %s with %s." % (meldAbbreviations[meld[1]], " and ".join([p1HandVisuals[int(i)] for i in meldAvailable[0] if str(i).isdigit()])))
-                            print("\n\n")
-                            revealedMelds[0].append(meldAvailable)
+                            print("\n\n\n")
+                            revealedMelds[0].append(['>'.join([tileVisuals([i])[0] for i in sorted([(p1Hand[i1] if str(i1).isdigit() else i1) for i1 in meldAvailable[0]])]) if meldAvailable[1] == 'S' else '-'.join((2 + list(meldAbbreviations.keys()).index(meldAvailable[1])) * [meldAvailable[0][0]])][0])
+                            for i in sorted(chosen, reverse=True):
+                                p1Hand.pop(i)
+                            p1HandVisuals = tileVisuals(deepcopy(p1Hand))
+                            chosen = []
                             listSelect = 0
                             mode = None
                             canDraw = False
@@ -621,26 +697,55 @@ def play():
     time.sleep(1)
     
     turn = 0
-    while True:
-        print(discardPile)
+    while True: # main playing loop
         time.sleep(1)
+        print("\n")
         if playOrder[turn % 4] != 0:
             aiTurn(turn % 4)
+            canMeld, melds = checkMeld(0)
+            if canMeld and bool([i for i in melds if i[1] != 'S']):
+                pass
         else:
-            p1HandVisuals = deepcopy(p1Hand)
-            tileVisuals(p1HandVisuals)
+            p1HandVisuals = tileVisuals(deepcopy(p1Hand))
             p1Turn()
         bonus()
+        if won[0] or len(dealOrder) == 0:
+            break
         turn += 1
 
+
+    replay = False
+    if won[0]:
+        print("Player %s won the game with the following hand:")
+        print("  ".join(won[2]))
+
+        match input("Play again? (Y or N)\x1b[?25h").upper():
+            case 'Y':
+                replay = True
+            case 'N':
+                print("Thanks for playing Pyjong,")
+                print("Remember to check out LeadPipe Corporation's games!")
+            case _:
+                print("You went through that whole game without pressing a single wrong key,")
+                print("And then you do this?")
+    elif len(dealOrder) == 0:
+        print("The draw pile ran out without anyone winning!")
+        match input("Play again? (Y or N)\x1b[?25h").upper():
+            case 'Y':
+                replay = True
+            case 'N':
+                print("Thanks for playing Pyjong,")
+                print("Remember to check out LeadPipe Corporation's games!")
+            case _:
+                print("You went through that whole game without pressing a single wrong key,")
+                print("And then you do this?")
     pass
 
 
 
-initialisation()
-
-
-play()
+if replay:
+    initialisation()
+    play()
 
 
 
