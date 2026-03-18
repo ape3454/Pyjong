@@ -27,27 +27,28 @@ Abbreviations:
 """
 
 replay = True
-
 tileSuitedTemplate = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 tileDragonTemplate = ["HZ", "BB", "FC"]
 tileWindTemplate = ['E', 'S', 'W', 'N']
 tileBonusTemplate = ["Plum", "Orchid", "Chrysanthemum", "Bamboo", "Spring", "Summer", "Autumn", "Winter"]
-discardPile = []
-discardPileVisuals = []
-p1Wall = []
-p2Wall = []
-p3Wall = []
-p4Wall = []
-walls = [p1Wall, p2Wall, p3Wall, p4Wall]
-p1Hand = []
-p1HandVisuals = []
-p2Hand = []
-p3Hand = []
-p4Hand = []
-global hands
-hands = [p1Hand, p2Hand, p3Hand, p4Hand]
-playOrder = []
-revealedMelds = [[], [], [], []]
+
+def reset():
+    discardPile = []
+    discardPileVisuals = []
+    p1Wall = []
+    p2Wall = []
+    p3Wall = []
+    p4Wall = []
+    walls = [p1Wall, p2Wall, p3Wall, p4Wall]
+    p1Hand = []
+    p1HandVisuals = []
+    p2Hand = []
+    p3Hand = []
+    p4Hand = []
+    global hands
+    hands = [p1Hand, p2Hand, p3Hand, p4Hand]
+    playOrder = []
+    revealedMelds = [[], [], [], []]
 
 def removeFromWall(number, hand, index=0):
         global hands
@@ -805,5 +806,6 @@ def play():
     pass
 
 while replay:
+    reset()
     initialisation()
     play()
