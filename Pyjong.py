@@ -123,8 +123,15 @@ def initialisation():
                 print("A 'Straight' hand is when every tile in your hand belongs to a set of Straights, and an eye.")
                 time.sleep(1.5)
                 print()
+                print("Controls:")
+                time.sleep(0.3)
+                print("A / D for Left / Right, shift to go all the way Left / Right")
+                time.sleep(0.7)
+                print("Space or Enter to confirm")
+                time.sleep(0.7)
+                print("Escape to go back")
                 #print("There also exists several unique ways of winning, for you to unlock.")
-                time.sleep(0.5)
+                time.sleep(1)
                 print()
                 print()
             case 'N':
@@ -163,6 +170,7 @@ def initialisation():
         global dealOrder
         global playOrder
 
+        print()
         print("------[ Dealing Phase ]------")
         time.sleep(0.2)
         print("Roll (press any key):")
@@ -203,7 +211,8 @@ def initialisation():
                     diceTotal[0].remove(min(diceTotal[0]))
 
         hands = hands[diceTotal[1][0]:] + hands[:diceTotal[1][0]]
-        time.sleep(0.3)
+        time.sleep(0.7)
+        print()
         print("Player %s is East. Player %s is South. Player %s is West. Player %s is North." % (diceTotal[1][0] % 4 + 1, (diceTotal[1][0] + 1) % 4 + 1, (diceTotal[1][0] + 2) % 4 + 1, (diceTotal[1][0] + 3) % 4 + 1))
         playOrder = [diceTotal[1][0] % 4, (diceTotal[1][0] + 1) % 4, (diceTotal[1][0] + 2) % 4, (diceTotal[1][0] + 3) % 4]
         time.sleep(1)
@@ -494,7 +503,7 @@ def play():
         time.sleep(0.5)
         bonus()
         discard(playOrder.index(ai), random.randint(0, len(hands[ai]) - 1))
-        print("Player %s discarded %s." % (ai + 1, hands[playOrder.index(ai)]))
+        print("Player %s discarded %s." % (ai + 1, hands[playOrder.index(ai)][-1]))
         pass
 
     def p1Turn():
@@ -674,13 +683,13 @@ def play():
                         if not bool(chosen):
                             chosen.append(select)
                             print("\x1b[3F\x1b[JChoose another cards to swap:")
-                            print("You have chosen %s." % (p1Hand[select]))
+                            print("You have chosen %s." % (p1HandVisuals[select]))
                             print()
                         else:
                             chosen = [[chosen[0], p1Hand[chosen[0]]], [select, p1Hand[select]]]
                             chosenVisuals = (p1HandVisuals[chosen[0][0]], p1HandVisuals[select])
-                            p1Hand[chosen[0][0]] = chosen[0][1]
-                            p1Hand[chosen[1][0]] = chosen[1][1]
+                            p1Hand[chosen[0][0]] = chosen[1][1]
+                            p1Hand[chosen[1][0]] = chosen[0][1]
                             p1HandVisuals[chosen[0][0]] = chosenVisuals[1]
                             p1HandVisuals[chosen[1][0]] = chosenVisuals[0]
                             print("\x1b[3F\x1b[JChoose two cards to swap.")
@@ -774,9 +783,11 @@ def play():
                 replay = True
             case 'N':
                 print("Thanks for playing Pyjong,")
+                time.sleep(0.5)
                 print("Remember to check out LeadPipe Corporation's games!")
             case _:
                 print("You went through that whole game without pressing a single wrong key,")
+                time.sleep(0.8)
                 print("And then you do this?")
     elif len(dealOrder) == 0:
         print("The draw pile ran out without anyone winning!")
@@ -785,24 +796,14 @@ def play():
                 replay = True
             case 'N':
                 print("Thanks for playing Pyjong,")
+                time.sleep(0.5)
                 print("Remember to check out LeadPipe Corporation's games!")
             case _:
                 print("You went through that whole game without pressing a single wrong key,")
+                time.sleep(0.8)
                 print("And then you do this?")
     pass
-
-
 
 while replay:
     initialisation()
     play()
-
-
-
-def test():
-    while False:
-        this = msvcrt.getch().decode()
-        print("1" + this + "1")
-        break
-
-test()
