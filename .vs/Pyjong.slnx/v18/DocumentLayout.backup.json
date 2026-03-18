@@ -7,12 +7,12 @@
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Pyjong.py||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ape34\\source\\repos\\ape3454\\Pyjong\\ASCII.py||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ASCII.py||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ape34\\source\\repos\\ape3454\\Pyjong\\LeadPipe Corporation.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:LeadPipe Corporation.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ape34\\source\\repos\\ape3454\\Pyjong\\ASCII.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ASCII.py||{8B382828-6202-11D1-8870-0000F87579D2}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,28 +22,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 1,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "ASCII.py",
-              "DocumentMoniker": "C:\\Users\\ape34\\source\\repos\\ape3454\\Pyjong\\ASCII.py",
-              "RelativeDocumentMoniker": "ASCII.py",
-              "ToolTip": "C:\\Users\\ape34\\source\\repos\\ape3454\\Pyjong\\ASCII.py",
-              "RelativeToolTip": "ASCII.py",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
-              "WhenOpened": "2026-03-03T08:19:44.529Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
               "Title": "LeadPipe Corporation.md",
               "DocumentMoniker": "C:\\Users\\ape34\\source\\repos\\ape3454\\Pyjong\\LeadPipe Corporation.md",
               "RelativeDocumentMoniker": "LeadPipe Corporation.md",
@@ -51,7 +34,8 @@
               "RelativeToolTip": "LeadPipe Corporation.md",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-03-02T08:05:36.829Z"
+              "WhenOpened": "2026-03-02T08:05:36.829Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -61,10 +45,22 @@
               "RelativeDocumentMoniker": "Pyjong.py",
               "ToolTip": "C:\\Users\\ape34\\source\\repos\\ape3454\\Pyjong\\Pyjong.py",
               "RelativeToolTip": "Pyjong.py",
-              "ViewState": "AgIAAMIBAAAAAAAAAAAEwJkBAAAvAAAAAAAAAA==",
+              "ViewState": "AgIAAJwBAAAAAAAAAAAMwKcBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
               "WhenOpened": "2026-03-02T07:57:20.256Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ASCII.py",
+              "DocumentMoniker": "C:\\Users\\ape34\\source\\repos\\ape3454\\Pyjong\\ASCII.py",
+              "RelativeDocumentMoniker": "ASCII.py",
+              "ToolTip": "C:\\Users\\ape34\\source\\repos\\ape3454\\Pyjong\\ASCII.py",
+              "RelativeToolTip": "ASCII.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-03-03T08:19:44.529Z"
             }
           ]
         }
