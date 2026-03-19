@@ -1,10 +1,8 @@
 from copy import deepcopy
 import itertools
-import math
 import random
 import time
 import msvcrt
-from turtle import screensize
 
 """
 Abbreviations:
@@ -33,19 +31,15 @@ tileWindTemplate = ['E', 'S', 'W', 'N']
 tileBonusTemplate = ["Plum", "Orchid", "Chrysanthemum", "Bamboo", "Spring", "Summer", "Autumn", "Winter"]
 
 def reset():
+    global discardPile, discardPileVisuals, walls, p1Hand, p1HandVisuals, p2Hand, p3Hand, p4Hand, hands, playOrder, revealedMelds
     discardPile = []
     discardPileVisuals = []
-    p1Wall = []
-    p2Wall = []
-    p3Wall = []
-    p4Wall = []
-    walls = [p1Wall, p2Wall, p3Wall, p4Wall]
+    walls = [[], [], [], []]
     p1Hand = []
     p1HandVisuals = []
     p2Hand = []
     p3Hand = []
     p4Hand = []
-    global hands
     hands = [p1Hand, p2Hand, p3Hand, p4Hand]
     playOrder = []
     revealedMelds = [[], [], [], []]
@@ -358,16 +352,16 @@ def play():
                                 continue
                             if int(v1[1]) - int(current_v[1][1]) == 1:
                                 breakFor = False
-                                for i in melds:
-                                    if set(i[0]) == set(current_i + [i1]):
+                                for i2 in melds:
+                                    if set(i2[0]) == set(current_i + [i1]):
                                         breakFor = True
                                         break
                                 if not breakFor:
                                     melds.append([current_i + [i1], 'S'])
                             elif int(current_v[0][1]) - int(v1[1]) == 1:
                                 breakFor = False
-                                for i in melds:
-                                    if set(i[0]) == set(current_i + [i1]):
+                                for i2 in melds:
+                                    if set(i2[0]) == set(current_i + [i1]):
                                         breakFor = True
                                         break
                                 if not breakFor:
@@ -378,8 +372,8 @@ def play():
         else:
             return False, None
 
-    def callMeld(handIndex, melds): # for ai only?
-        pass
+    """def callMeld(handIndex, melds): # for ai only?
+        pass"""
 
     def checkWin(handIndex):
         hand = deepcopy(hands[handIndex])
@@ -439,34 +433,34 @@ def play():
                         case 0:
                             meldHand.sort(key=lambda x: len(possibleMelds[x][0]), reverse=True)
                             if len(possibleMelds[meldHand[-2]][0]) > 2:
-                                winningHand = ("   ".join([('>' if i1[1] == 'S' else '-').join(sorted([hand[i2] for i2 in i1[0]])) for i1 in [possibleMelds[i4] for i4 in meldHand]]))
+                                winningHand = "   ".join([('>' if i1[1] == 'S' else '-').join(sorted([hand[i2] for i2 in i1[0]])) for i1 in [possibleMelds[i4] for i4 in meldHand]])
                                 global won
                                 won = [True, playOrder[handIndex], winningHand]
-                                breakFor.append(True)
+                                breakFor = True
                             else:
-                                breakFor.append(False)
+                                breakFor = False
                         case 2:
                             meldHand.sort(key=lambda x: len(possibleMelds[x][0]), reverse=True)
                             if len(possibleMelds[meldHand[-2]]) > 2:
                                 winning[playOrder[handIndex]] = True
-                            breakFor.append(meldAHand(meldedHand, breakFor))
+                            breakFor = meldAHand(meldedHand, breakFor)
                         case 3:
                             meldHand.sort(key=lambda x: len(possibleMelds[x][0]), reverse=True)
                             if len(possibleMelds[meldHand[-2]]) > 2 and len(possibleMelds[meldHand[-2]]) == 2:
                                 winning[playOrder[handIndex]] = True
-                            breakFor.append(meldAHand(meldedHand, breakFor))
+                            breakFor = meldAHand(meldedHand, breakFor)
                         case _:
-                            breakFor.append(meldAHand(meldedHand, breakFor))
-                    if breakFor[-1]:
+                            breakFor = meldAHand(meldedHand, breakFor)
+                    if breakFor:
                         return True
                     meldedHand |= set(v[0])
                     meldHand.pop()
-                    breakFor.pop()
+                    breakFor = False
                 
 
         meldedHand = set(range(14 - 2 * len(melds)))
         meldHand = []
-        breakFor = [False]
+        breakFor = False
         meldAHand(meldedHand, breakFor)
                         
 
@@ -501,7 +495,7 @@ def play():
             removeFromWall(1, playOrder.index(ai))
             print("Player %s drew a tile." % (ai + 1))
         checkWin(playOrder.index(ai))
-        time.sleep(0.5)
+        time.sleep(1)
         bonus()
         discard(playOrder.index(ai), random.randint(0, len(hands[ai]) - 1))
         print("Player %s discarded %s." % (ai + 1, hands[playOrder.index(ai)][-1]))
